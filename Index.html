@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Student Attendance Registry</title>
+<style>
+  :root {
+    --primary-color: #4a90e2;
+    --secondary-color: #50e3c2;
+    --background-color: #f7f9fc;
+    --text-color: #333;
+    --border-radius: 8px;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: var(--font-family);
+    background: var(--background-color);
+    margin: 0; padding: 0;
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  header {
+    background: var(--primary-color);
+    color: white;
+    padding: 1rem 2rem;
+    width: 100%;
+    text-align: center;
+    font-weight: 700;
+    font-size: 1.5rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }
+  main {
+    flex: 1;
+    width: 100%;
+    max-width: 900px;
+    margin: 2rem auto 3rem;
+    background: white;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+  button {
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover:not(:disabled) {
+    background: var(--secondary-color);
+  }
+  button:disabled {
+    background: #ccc;
+    cursor: default;
+  }
+  input[type="text"], input[type="password"], input[type="date"] {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1.5px solid #ccc;
+    border-radius: var(--border-radius);
+    width: 100%;
+    margin-bottom: 1rem;
+    transition: border-color 0.3s ease;
+  }
+  input[type="text"]:focus, input[type="password"]:focus, input[type="date"]:focus {
+    border-color: var(--primary-color);
+    outline: none;
+  }
+  label {
+    font-weight: 600;
+    margin-bottom: 0.3rem;
+    display: block;
+  }
+  .form-group {
+    max-width: 400px;
+    margin-bottom: 1rem;
+  }
+  #login-section, #register-section, #attendance-section {
+    display: none;
+  }
+  .visible {
+    display: block;
+  }
+  ul {
+    padding-left: 1.2rem;
+  }
+  .student-list {
+    max-height: 250px;
+    overflow-y: auto;
+    margin: 1rem 0;
+    border: 1px solid #ddd;
+    border-radius: var(--border-radius);
+  }
+  .student-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid #eee;
+  }
+  .student-item:last-child {
+    border-bottom: none;
+  }
+  .attendance-controls button {
+    margin-left: 0.3rem;
+    min-width: 80px;
+  }
+  .logout-btn {
+    background: #e74c3c;
+    margin-top: 1rem;
+  }
+  .attendance-date {
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+  .message {
+    margin-bottom: 1rem;
+    color: #e74c3c;
+    font-weight: 600;
+  }
+  @media(max-width:600px) {
+    main {
+      margin: 1rem;
+      padding: 1rem;
+    }
+    .student-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .attendance-controls button {
+      margin: 0.2rem 0 0 0;
+      min-width: auto;
+    }
+  }
+</style>
+</head>
+<body>
+<header>Student Attendance Registry</header>
+<main>
+  <section id="auth-section" class="visible">
+    <div id="register-section">
+      <h2>Teacher Registration</h2>
+      <div class="form-group">
+        <label for="register-teacher">Teacher Username</label>
+        <input type="text" id="register-teacher" placeholder="Enter username" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="register-password">Password</label>
+        <input type="password" id="register-password" placeholder="Enter password" />
+      </div>
+      <button id="btn-register">Register</button>
+      <p>Already have an account? <a href="#" id="show-login">Login here</a></p>
+      <p class="message" id="register-message"></p>
+    </div>
+    <div id="login-section">
+      <h2>Teacher Login</h2>
+      <div class="form-group">
+        <label for="login-teacher">Teacher Username</label>
+        <input type="text" id="login-teacher" placeholder="Enter username" autocomplete="off" />
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input type="password" id="login-password" placeholder="Enter password" />
+      </div>
+      <button id="btn-login">Login</button>
+      <p>Don't have an account? <a href="#" id="show-register">Register here</a></p>
+      <p class="message" id="login-message"></p>
+    </div>
+  </section>
+
+  <section id="attendance-section">
+    <h2>Welcome, <span id="teacher-name"></span></h2>
+    <button class="logout-btn" id="btn-logout">Logout</button>
+    <hr />
+    <h3>Manage Students</h3>
+    <div class="form-group">
+      <label for="student-name-input">Add Student</label>
+      <input type="text" id="student-name-input" placeholder="Enter student name" autocomplete="off" />
+      <button id="btn-add-student">Add Student</button>
+      <p class="message" id="student-message"></p>
+    </div>
+    <h3>Attendance for <input type="date" id="attendance-date" /></h3>
+    <div class="student-list" id="student-list">
+      <!-- Students will be listed here -->
+    </div>
+  </section>
+</main>
+<script>
+  (function() {
+    const registerSection = document.getElementById('register-section');
+    const loginSection = document.getElementById('login-section');
+    const authSection = document.getElementById('auth-section');
+    const attendanceSection = document.getElementById('attendance-section');
+    const btnRegister = document.getElementById('btn-register');
+    const btnLogin = document.getElementById('btn-login');
+    const btnLogout = document.getElementById('btn-logout');
+    const showLoginLink = document.getElementById('show-login');
+    const showRegisterLink = document.getElementById('show-register');
+
+    const registerTeacherInput = document.getElementById('register-teacher');
+    const registerPasswordInput = document.getElementById('register-password');
+    const registerMessage = document.getElementById('register-message');
+
+    const loginTeacherInput = document.getElementById('login-teacher');
+    const loginPasswordInput = document.getElementById('login-password');
+    const loginMessage = document.getElementById('login-message');
+
+    const teacherNameSpan = document.getElementById('teacher-name');
+
+    const studentNameInput = document.getElementById('student-name-input');
+    const btnAddStudent = document.getElementById('btn-add-student');
+    const studentMessage = document.getElementById('student-message');
+
+    const attendanceDateInput = document.getElementById('attendance-date');
+    const studentListDiv = document.getElementById('student-list');
+
+    let currentTeacher = null;
+    let data = {};
+    
+    // Helper: Load all data from localStorage
+    function loadData() {
+      const stored = localStorage.getItem('attendanceData');
+      if (stored) {
+        try {
+          data = JSON.parse(stored);
+        } catch (e) {
+          data = {};
+          console.error('Corrupted data found in localStorage, resetting.');
+        }
+      } else {
+        data = {};
+      }
+    }
+    // Helper: Save all data to localStorage
+    function saveData() {
+      localStorage.setItem('attendanceData', JSON.stringify(data));
+    }
+    // Helper: Load teachers credentials from localStorage
+    function loadTeachers() {
+      const stored = localStorage.getItem('teachersCred');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          console.error('Corrupted teachersCred, resetting.');
+          return {};
+        }
+      }
+      return {};
+    }
+    // Helper: Save teachers credentials
+    function saveTeachers(creds) {
+      localStorage.setItem('teachersCred', JSON.stringify(creds));
+    }
+    // Show register or login section
+    function showSection(section) {
+      if (section === 'register') {
+        registerSection.classList.add('visible');
+        loginSection.classList.remove('visible');
+      } else if (section === 'login') {
+        loginSection.classList.add('visible');
+        registerSection.classList.remove('visible');
+      }
+    }
+    // Clear messages
+    function clearMessages() {
+      registerMessage.textContent = '';
+      loginMessage.textContent = '';
+      studentMessage.textContent = '';
+    }
+    // Handle registration
+    btnRegister.addEventListener('click', () => {
+      clearMessages();
+      const username = registerTeacherInput.value.trim();
+      const password = registerPasswordInput.value;
+      if (!username || !password) {
+        registerMessage.textContent = 'Please enter username and password.';
+        return;
+      }
+      let teachers = loadTeachers();
+      if (teachers[username]) {
+        registerMessage.textContent = 'Username already exists. Please choose another.';
+        return;
+      }
+      teachers[username] = password;
+      saveTeachers(teachers);
+
+      // Initialize attendance data for teacher
+      if (!data[username]) {
+        data[username] = {students: {}, attendance: {}};
+        saveData();
+      }
+      registerMessage.style.color = 'green';
+      registerMessage.textContent = 'Registration successful! You can now login.';
+      registerTeacherInput.value = '';
+      registerPasswordInput.value = '';
+    });
+
+    // Handle login
+    btnLogin.addEventListener('click', () => {
+      clearMessages();
+      const username = loginTeacherInput.value.trim();
+      const password = loginPasswordInput.value;
+      if (!username || !password) {
+        loginMessage.textContent = 'Please enter username and password.';
+        return;
+      }
+      let teachers = loadTeachers();
+      if (!teachers[username] || teachers[username] !== password) {
+        loginMessage.textContent = 'Invalid username or password.';
+        return;
+      }
+      currentTeacher = username;
+      teacherNameSpan.textContent = currentTeacher;
+      authSection.classList.remove('visible');
+      attendanceSection.classList.add('visible');
+      loginTeacherInput.value = '';
+      loginPasswordInput.value = '';
+      clearMessages();
+      loadData();
+      renderStudentList();
+      setDefaultDate();
+    });
+    // Logout
+    btnLogout.addEventListener('click', () => {
+      currentTeacher = null;
+      attendanceSection.classList.remove('visible');
+      authSection.classList.add('visible');
+      showSection('login');
+      clearMessages();
+      studentListDiv.innerHTML = '';
+    });
+    // switch to login view
+    showLoginLink.addEventListener('click', e => {
+      e.preventDefault();
+      showSection('login');
+      clearMessages();
+    });
+    // switch to register view
+    showRegisterLink.addEventListener('click', e => {
+      e.preventDefault();
+      showSection('register');
+      clearMessages();
+    });
+
+    // Add new student
+    btnAddStudent.addEventListener('click', () => {
+      studentMessage.style.color = 'red';
+      studentMessage.textContent = '';
+      const name = studentNameInput.value.trim();
+      if (!name) {
+        studentMessage.textContent = 'Student name cannot be empty.';
+        return;
+      }
+      if (!currentTeacher) return;
+      loadData();
+      let teacherData = data[currentTeacher];
+      if (!teacherData) {
+        teacherData = {students: {}, attendance: {}};
+        data[currentTeacher] = teacherData;
+      }
+      if (teacherData.students[name]) {
+        studentMessage.textContent = 'Student already exists.';
+        return;
+      }
+      teacherData.students[name] = true;
+      saveData();
+      studentNameInput.value = '';
+      studentMessage.style.color = 'green';
+      studentMessage.textContent = `Added student "${name}".`;
+      renderStudentList();
+    });
+
+    // Set default date to today on the date input
+    function setDefaultDate() {
+      const today = new Date().toISOString().split('T')[0];
+      attendanceDateInput.value = today;
+    }
+
+    // Render student list with attendance buttons
+    function renderStudentList() {
+      if (!currentTeacher) return;
+      loadData();
+      const teacherData = data[currentTeacher];
+      if (!teacherData || !teacherData.students) {
+        studentListDiv.innerHTML = '<p>No students added yet.</p>';
+        return;
+      }
+      const students = Object.keys(teacherData.students);
+      if (students.length === 0) {
+        studentListDiv.innerHTML = '<p>No students added yet.</p>';
+        return;
+      }
+      const date = attendanceDateInput.value;
+      let attendanceOnDate = (teacherData.attendance && teacherData.attendance[date]) || {};
+      let htmlList = '';
+      students.forEach(student => {
+        const status = attendanceOnDate[student] || 'none';
+        htmlList += `
+          <div class="student-item" data-student="${student}">
+            <div>${student}</div>
+            <div class="attendance-controls">
+              <button class="mark-attendance" data-status="present" ${status === 'present' ? 'disabled' : ''}>Present</button>
+              <button class="mark-attendance" data-status="absent" ${status === 'absent' ? 'disabled' : ''}>Absent</button>
+              <button class="mark-attendance" data-status="none" ${status === 'none' ? 'disabled' : ''}>Clear</button>
+            </div>
+          </div>
+        `;
+      });
+      studentListDiv.innerHTML = htmlList;
+
+      // Attach event listeners
+      const buttons = studentListDiv.querySelectorAll('button.mark-attendance');
+      buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const student = btn.closest('.student-item').dataset.student;
+          const selectedStatus = btn.dataset.status;
+          markAttendance(student, selectedStatus);
+        });
+      });
+    }
+
+    // Mark attendance for a student on the selected date
+    function markAttendance(student, status) {
+      if (!currentTeacher) return;
+      const date = attendanceDateInput.value;
+      if (!date) {
+        alert('Please select a date.');
+        return;
+      }
+      loadData();
+      let teacherData = data[currentTeacher];
+      if (!teacherData.attendance) teacherData.attendance = {};
+      if (!teacherData.attendance[date]) teacherData.attendance[date] = {};
+      if (status === 'none') {
+        delete teacherData.attendance[date][student];
+      } else {
+        teacherData.attendance[date][student] = status;
+      }
+      saveData();
+      renderStudentList();
+    }
+
+    attendanceDateInput.addEventListener('change', () => {
+      renderStudentList();
+    });
+
+    // Initial state
+    showSection('register');
+  })();
+</script>
+</body>
+</html>
+
+  
